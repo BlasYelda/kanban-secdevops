@@ -1,0 +1,26 @@
+services:
+  backend-api:
+    build: ./backend
+    container_name: kanban-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+    networks:
+      - kanban-network
+
+  frontend-flask:
+    build: ./frontend
+    container_name: kanban-frontend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend-api
+    environment:
+      - BACKEND_URL=http://backend-api:5000
+    networks:
+      - kanban-network
+
+networks:
+  kanban-network:
+    driver: bridge
