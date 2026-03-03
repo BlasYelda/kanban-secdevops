@@ -2,6 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
+    # Permitimos que corra en todas las ramas para validar antes del merge
+    branches: [ main, feature/* ]
+  pull_request:
     branches: [ main ]
 
 jobs:
@@ -23,12 +26,18 @@ jobs:
         pip install -r frontend/requirements.txt
         pip install bandit
         
+    - name: Run Bandit Scan
+      run: |
+        # Escaneo de seguridad (SAST)
+        # Usamos --exit-zero para que el pipeline no se detenga por los riesgos documentados
+        bandit -r . -f json -o report.json --exit-zero
+
+    - name: Run Unit Tests
+      run: |
+        # Ejecuta todos los tests en la carpeta /tests
+        python -m unittest discover tests
+
     - name: Build Docker Images
       run: |
         docker build -t kanban-backend ./backend
         docker build -t kanban-frontend ./frontend
-
-    - name: Run Bandit Scan
-      run: |
-        # Escanea recursivamente el directorio actual buscando vulnerabilidades en Python 
-        bandit -r . -f json -o report.json --exit-zero

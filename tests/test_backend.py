@@ -4,7 +4,8 @@ import os
 
 # Ajustar el path para importar main.py desde backend/app
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../backend')))
-from main import app
+
+from app.main import app
 
 class BackendTestCase(unittest.TestCase):
     def setUp(self):
