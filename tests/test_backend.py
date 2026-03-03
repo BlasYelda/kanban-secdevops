@@ -2,14 +2,16 @@ import unittest
 import sys
 import os
 
-# Ajustar el path para importar main.py desde backend/app
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../backend')))
+# Apuntamos a la carpeta raíz de la aplicación del backend
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../backend/app')))
 
-from app.main import app
+# Importamos directamente el módulo main
+import main
 
 class BackendTestCase(unittest.TestCase):
     def setUp(self):
-        self.client = app.test_client()
+        # Accedemos al objeto Flask 'app' dentro del módulo 'main'
+        self.client = main.app.test_client()
 
     def test_api_root(self):
         """Verifica que la API raíz responde correctamente"""

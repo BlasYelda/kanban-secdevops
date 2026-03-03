@@ -2,18 +2,18 @@ import unittest
 import sys
 import os
 
-# --- CORRECCIÓN AQUÍ ---
-# Añadimos la carpeta 'frontend' al path para que Python encuentre app.py
+# Apuntamos directamente a la carpeta donde reside app.py
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../frontend')))
 
-# Ahora esta importación funcionará
-from app import app
+# Importamos el archivo (módulo) app
+import app 
 
 class FrontendTestCase(unittest.TestCase):
     def setUp(self):
-        self.ctx = app.app_context()
+        # Accedemos al objeto Flask 'app' dentro del módulo importado 'app'
+        self.ctx = app.app.app_context()
         self.ctx.push()
-        self.client = app.test_client()
+        self.client = app.app.test_client()
 
     def tearDown(self):
         self.ctx.pop()
