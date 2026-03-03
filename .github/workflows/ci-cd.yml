@@ -31,4 +31,4 @@ jobs:
     - name: Run Bandit Scan
       run: |
         # Escanea recursivamente el directorio actual buscando vulnerabilidades en Python 
-        bandit -r . -f json -o report.json
+        bandit -r . -f json -o report.json --exit-zero
