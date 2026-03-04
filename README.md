@@ -1,46 +1,93 @@
-📋 Kanban Board - SecDevOps Project
-Este es un proyecto de tablero Kanban desarrollado bajo una metodología SecDevOps, integrando análisis de seguridad automatizado, pruebas de integración y un despliegue basado en contenedores.
+# 📋 Kanban Board - SecDevOps Project
 
-🚀 Cómo ejecutar el proyecto
-Este proyecto utiliza Docker Compose para orquestar los microservicios de Frontend y Backend de forma aislada y segura.
+Este es un tablero Kanban robusto desarrollado bajo la metodología SecDevOps. Integra microservicios aislados, análisis de seguridad automatizado y una infraestructura resiliente mediante contenedores.
 
-🛠️ Prerrequisitos
-Tener instalado Docker Desktop.
+---
 
-Git para la gestión de versiones.
+## 🚀 Despliegue del Proyecto
 
-🏁 Pasos para el despliegue
-Clona el repositorio:
+Hemos optimizado el orquestador para garantizar que los servicios arranquen en el orden correcto, evitando errores de conexión de base de datos mediante Healthchecks y Networks aisladas.
 
-Bash
-git clone <url-de-tu-repositorio>
-cd kanban-secdevops
-Levanta el entorno: Ejecuta el siguiente comando en la raíz para construir y levantar los contenedores:
+### Prerrequisitos
 
-Bash
-docker compose up --build
-Acceso a la aplicación:
+- **Docker Desktop** (incluye Docker Compose)
+- **Git** para la gestión de versiones
 
-Interfaz de Usuario (Frontend): http://localhost:8080
+### Pasos para el arranque
 
-API de Datos (Backend): http://localhost:5000
+1. **Clonar el repositorio:**
 
-🛡️ Seguridad y Calidad (CI/CD)
-El proyecto cuenta con un pipeline automatizado en GitHub Actions (ci-cd.yml) que garantiza la integridad del código en cada commit y pull request:
+   ```bash
+   git clone <url-de-tu-repositorio>
+   cd kanban-secdevops
+   ```
 
-Análisis SAST: Integración de Bandit para la detección temprana de vulnerabilidades en el código Python.
+2. **Levantar el entorno (Modo Limpio):**
 
-Tests Unitarios: Suite de pruebas automatizadas con unittest que validan la disponibilidad de las rutas raíz tanto en Frontend como en Backend.
+   Para asegurar un despliegue sin conflictos de caché o volúmenes antiguos, ejecuta:
 
-Gestión de Riesgos: Se han documentado y mitigado hallazgos de seguridad, consultables en el archivo SECURITY.md.
+   ```bash
+   docker compose down -v
+   docker compose up --build -d
+   ```
 
-Validación de Calidad: Detalles sobre la estrategia de pruebas y resultados en el archivo TESTING.md.
+3. **Verificar estado de salud:**
 
-🏗️ Estructura del Proyecto
-frontend/: Aplicación Flask que sirve la interfaz de usuario.
+   ```bash
+   docker compose ps
+   ```
 
-backend/: API REST en Flask para la gestión de lógica y datos.
+   > El contenedor `kanban-db` debe marcarse como **healthy** antes de que el backend inicie sus operaciones.
 
-tests/: Pruebas unitarias para asegurar la estabilidad del sistema.
+---
 
-.github/workflows/: Configuración de la Integración Continua (CI).
+## 🌐 Puntos de Acceso
+
+| Servicio     | URL Local              | Descripción                     |
+|--------------|------------------------|---------------------------------|
+| Frontend     | http://localhost:8080  | Interfaz de usuario Flask       |
+| Backend API  | http://localhost:5000  | Lógica de negocio y API REST    |
+| Database     | `localhost:3307`       | Acceso externo (mapeado al 3306 interno) |
+
+---
+
+## ⚙️ Configuración y Credenciales
+
+El sistema utiliza las siguientes variables de entorno preconfiguradas para el desarrollo:
+
+| Variable        | Valor                  |
+|-----------------|------------------------|
+| Base de Datos   | `kanban_db`            |
+| Usuario DB      | `kanban_user`          |
+| Password DB     | `kanban_password_123`  |
+| Red Interna     | `kanban-network`       |
+
+> **Red Interna:** Aísla el tráfico entre servicios.
+
+> [!IMPORTANT]
+> El Backend incluye una política de resiliencia: si la base de datos no está lista, el servicio esperará automáticamente gracias a la condición `service_healthy` definida en el `docker-compose.yml`.
+
+---
+
+## 🛡️ Seguridad y Calidad (CI/CD)
+
+El proyecto implementa un pipeline de Integración Continua que garantiza la seguridad en cada cambio:
+
+- **Análisis SAST:** Uso de `Bandit` para detectar vulnerabilidades en el código Python de forma temprana.
+- **Healthchecks:** Monitorización activa de la disponibilidad de MySQL (`mysqladmin ping`).
+- **Aislamiento de Red:** Los microservicios se comunican a través de una red puente privada, limitando la exposición de puertos innecesarios.
+- **Pruebas Automatizadas:** Suite con `unittest` que valida las rutas críticas antes de cada despliegue.
+
+---
+
+## 🏗️ Estructura del Proyecto
+
+```plaintext
+├── .github/workflows/   # Automatización CI/CD (GitHub Actions)
+├── backend/             # API REST (Flask + SQLAlchemy)
+├── frontend/            # Interfaz de Usuario (Flask)
+├── tests/               # Pruebas unitarias y de integración
+├── docker-compose.yml   # Orquestación de microservicios
+├── SECURITY.md          # Registro de mitigación de riesgos
+└── TESTING.md           # Estrategia y resultados de pruebas
+```
