@@ -1,46 +1,12 @@
-📋 Kanban Board - SecDevOps Project
-Este es un proyecto de tablero Kanban desarrollado bajo una metodología SecDevOps, integrando análisis de seguridad automatizado, pruebas de integración y un despliegue basado en contenedores.
-
-🚀 Cómo ejecutar el proyecto
-Este proyecto utiliza Docker Compose para orquestar los microservicios de Frontend y Backend de forma aislada y segura.
-
-🛠️ Prerrequisitos
-Tener instalado Docker Desktop.
-
-Git para la gestión de versiones.
-
-🏁 Pasos para el despliegue
-Clona el repositorio:
-
-Bash
-git clone <url-de-tu-repositorio>
+📋 Kanban Board - SecDevOps ProjectEste es un tablero Kanban robusto desarrollado bajo la metodología SecDevOps. Integra microservicios aislados, análisis de seguridad automatizado y una infraestructura resiliente mediante contenedores. 🚀🚀 Despliegue del ProyectoHemos optimizado el orquestador para garantizar que los servicios arranquen en el orden correcto, evitando errores de conexión de base de datos mediante Healthchecks y Networks aisladas. 🛠️PrerrequisitosDocker Desktop (incluye Docker Compose).Git para la gestión de versiones. ⚙️Pasos para el arranqueClonar el repositorio:Bashgit clone <url-de-tu-repositorio>
 cd kanban-secdevops
-Levanta el entorno: Ejecuta el siguiente comando en la raíz para construir y levantar los contenedores:
-
-Bash
-docker compose up --build
-Acceso a la aplicación:
-
-Interfaz de Usuario (Frontend): http://localhost:8080
-
-API de Datos (Backend): http://localhost:5000
-
-🛡️ Seguridad y Calidad (CI/CD)
-El proyecto cuenta con un pipeline automatizado en GitHub Actions (ci-cd.yml) que garantiza la integridad del código en cada commit y pull request:
-
-Análisis SAST: Integración de Bandit para la detección temprana de vulnerabilidades en el código Python.
-
-Tests Unitarios: Suite de pruebas automatizadas con unittest que validan la disponibilidad de las rutas raíz tanto en Frontend como en Backend.
-
-Gestión de Riesgos: Se han documentado y mitigado hallazgos de seguridad, consultables en el archivo SECURITY.md.
-
-Validación de Calidad: Detalles sobre la estrategia de pruebas y resultados en el archivo TESTING.md.
-
-🏗️ Estructura del Proyecto
-frontend/: Aplicación Flask que sirve la interfaz de usuario.
-
-backend/: API REST en Flask para la gestión de lógica y datos.
-
-tests/: Pruebas unitarias para asegurar la estabilidad del sistema.
-
-.github/workflows/: Configuración de la Integración Continua (CI).
+Levantar el entorno (Modo Limpio):Para asegurar un despliegue sin conflictos de caché o volúmenes antiguos, ejecuta:Bashdocker compose down -v
+docker compose up --build -d
+Verificar estado de salud:Bashdocker compose ps
+El contenedor kanban-db debe marcarse como healthy antes de que el backend inicie sus operaciones. 🌐🌐 Puntos de AccesoServicioURL LocalDescripciónFrontendhttp://localhost:8080Interfaz de usuario FlaskBackend APIhttp://localhost:5000Lógica de negocio y API RESTDatabaselocalhost:3307Acceso externo (mapeado al 3306 interno)⚙️ Configuración y CredencialesEl sistema utiliza las siguientes variables de entorno preconfiguradas para el desarrollo:Base de Datos: kanban_dbUsuario DB: kanban_userPassword DB: kanban_password_123Red Interna: kanban-network (Aísla el tráfico entre servicios).[!IMPORTANT]El Backend incluye una política de resiliencia: si la base de datos no está lista, el servicio esperará automáticamente gracias a la condición service_healthy definida en el docker-compose.yml. 🔵🛡️ Seguridad y Calidad (CI/CD)El proyecto implementa un pipeline de Integración Continua que garantiza la seguridad en cada cambio:Análisis SAST: Uso de Bandit para detectar vulnerabilidades en el código Python de forma temprana.Healthchecks: Monitorización activa de la disponibilidad de MySQL (mysqladmin ping).Aislamiento de Red: Los microservicios se comunican a través de una red puente privada, limitando la exposición de puertos innecesarios.Pruebas Automatizadas: Suite con unittest que valida las rutas críticas antes de cada despliegue. 📑🏗️ Estructura del ProyectoPlaintext├── .github/workflows/   # Automatización CI/CD (GitHub Actions)
+├── backend/             # API REST (Flask + SQLAlchemy)
+├── frontend/            # Interfaz de Usuario (Flask)
+├── tests/               # Pruebas unitarias y de integración
+├── docker-compose.yml   # Orquestación de microservicios
+├── SECURITY.md          # Registro de mitigación de riesgos
+└── TESTING.md           # Estrategia y resultados de pruebas
