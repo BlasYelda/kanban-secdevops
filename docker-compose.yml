@@ -1,11 +1,35 @@
 services:
+  db:
+    image: mysql:8.0
+    container_name: kanban-db
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "kanban_user", "--password=kanban_password_123"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: always
+    environment:
+      MYSQL_DATABASE: kanban_db
+      MYSQL_ROOT_PASSWORD: root_password_segura
+      MYSQL_USER: kanban_user
+      MYSQL_PASSWORD: kanban_password_123
+    ports:
+      - "3307:3306"
+    networks:
+      - kanban-network
+
   backend-api:
     build: ./backend
     container_name: kanban-backend
+    restart: on-failure  # Reintenta si la conexión falla al arranque
     ports:
       - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy  # ESPERA a que la DB esté lista de verdad
     environment:
       - FLASK_ENV=development
+      - DATABASE_URL=mysql+pymysql://kanban_user:kanban_password_123@db:3306/kanban_db
     networks:
       - kanban-network
 
