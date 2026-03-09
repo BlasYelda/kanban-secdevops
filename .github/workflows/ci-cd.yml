@@ -30,11 +30,18 @@ jobs:
         # Escaneo de seguridad del código Python
         bandit -r . -f txt --exit-zero
 
+    - name: Create dummy certs for Nginx test
+      run: |
+        # Creamos la carpeta y archivos falsos para que el test de Nginx no falle
+        mkdir -p nginx/certs
+        touch nginx/certs/selfsigned.crt nginx/certs/selfsigned.key
+
     - name: Validate Nginx Config
       run: |
-        # Usamos --add-host para simular que los contenedores existen y Nginx no falle el test
+        # Montamos el conf y los certs, y simulamos los hosts del backend/frontend
         docker run --rm -t \
-          -v ${{ github.workspace }}/nginx/default.conf:/etc/nginx/conf.d/default.conf \
+          -v ${{ github.workspace }}/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro \
+          -v ${{ github.workspace }}/nginx/certs:/etc/nginx/certs:ro \
           --add-host kanban-frontend:127.0.0.1 \
           --add-host kanban-backend:127.0.0.1 \
           nginx:alpine nginx -t
@@ -46,5 +53,5 @@ jobs:
 
     - name: Build Docker Stack
       run: |
-        # Validamos que todos los contenedores (incluido Nginx) construyen correctamente
+        # Validamos que todos los servicios construyen correctamente
         docker compose build
