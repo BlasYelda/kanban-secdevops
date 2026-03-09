@@ -32,8 +32,12 @@ jobs:
 
     - name: Validate Nginx Config
       run: |
-        # Usamos la imagen oficial para verificar que el default.conf no tenga errores sintácticos
-        docker run --rm -t -v ${{ github.workspace }}/nginx/default.conf:/etc/nginx/conf.d/default.conf nginx:alpine nginx -t
+        # Usamos --add-host para simular que los contenedores existen y Nginx no falle el test
+        docker run --rm -t \
+          -v ${{ github.workspace }}/nginx/default.conf:/etc/nginx/conf.d/default.conf \
+          --add-host kanban-frontend:127.0.0.1 \
+          --add-host kanban-backend:127.0.0.1 \
+          nginx:alpine nginx -t
 
     - name: Run Unit Tests
       run: |
