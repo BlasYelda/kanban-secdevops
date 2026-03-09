@@ -1,33 +1,24 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-import requests  # Importante para hablar con el backend
+import requests
+import os
 
 app = Flask(__name__)
-app.secret_key = 'super-secreto-para-el-trabajo'
-
-# La URL de tu API Backend dentro de la red de Docker
-BACKEND_URL = "http://kanban-backend:5000"
+app.secret_key = os.getenv('SECRET_KEY', 'dev_key')
+BACKEND_URL = os.getenv('BACKEND_URL', 'http://kanban-backend:5000')
 
 @app.route('/')
 def login():
-    return '''
-        <h2>Acceso al Tablero Kanban</h2>
-        <form action="/auth" method="post">
-            Usuario: <input name="username"><br>
-            Clave: <input name="password" type="password"><br><br>
-            <input type="submit" value="Entrar">
-        </form>
-    '''
+    if 'username' in session:
+        return redirect(url_for('dashboard'))
+    return render_template('login.html')
 
 @app.route('/auth', methods=['POST'])
 def auth():
     username = request.form.get('username')
     password = request.form.get('password')
-    
-    # Enviamos los datos al Backend real
     try:
         response = requests.post(f"{BACKEND_URL}/login", json={
-            "username": username,
-            "password": password
+            "username": username, "password": password
         }, timeout=5)
 
         if response.status_code == 200:
@@ -35,11 +26,9 @@ def auth():
             session['username'] = data['user']['username']
             session['role'] = data['user']['role']
             return redirect(url_for('dashboard'))
-        else:
-            return "<h3>Login fallido: Usuario o contraseña incorrectos en la DB.</h3><a href='/'>Volver</a>"
-            
-    except requests.exceptions.ConnectionError:
-        return "<h3>Error: No se pudo conectar con el Backend de la Base de Datos.</h3>"
+        return "<h3>Error de login</h3><a href='/'>Volver</a>", 401
+    except:
+        return "Error de conexión con el backend", 500
 
 @app.route('/dashboard')
 def dashboard():
@@ -47,21 +36,26 @@ def dashboard():
         return redirect(url_for('login'))
 
     role = session.get('role', 'user')
-    bg_color = "#333" if role == "admin" else "#f4f4f4"
-    text_color = "white" if role == "admin" else "black"
-    title = "PANEL ADMINISTRADOR" if role == "admin" else "Tablero Kanban de Usuario"
+    username = session.get('username')
     
-    return f'''
-        <body style="background-color: {bg_color}; color: {text_color}; font-family: sans-serif;">
-            <h1>{title}</h1>
-            <p>Sesión activa: <b>{session.get('username')}</b> (Perfil: {role})</p>
-            <hr>
-            <h3>Tus Tareas:</h3>
-            <ul><li>[Ejemplo] Configurar Persistencia SQLite ✅</li></ul>
-            <br>
-            <a href="/logout" style="color: {text_color};">Cerrar Sesión</a>
-        </body>
-    '''
+    # Configuración visual según rol
+    config = {
+        "role": role,
+        "username": username,
+        "bg_color": "#1a1a1a" if role == "admin" else "#ffffff",
+        "text_color": "#e0e0e0" if role == "admin" else "#333333",
+        "title": "ADMIN PANEL" if role == "admin" else "Kanban Dashboard",
+        "users_list": []
+    }
+
+    # Si es admin, pedimos los usuarios al backend
+    if role == "admin":
+        headers = {'X-Role': 'admin'}
+        res = requests.get(f"{BACKEND_URL}/debug/users", headers=headers)
+        if res.status_code == 200:
+            config["users_list"] = res.json().get('users', [])
+
+    return render_template('dashboard.html', **config)
 
 @app.route('/logout')
 def logout():

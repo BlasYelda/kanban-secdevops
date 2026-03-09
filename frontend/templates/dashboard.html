@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <style>
+        body { font-family: sans-serif; padding: 40px; transition: 0.3s; 
+               background: {{ bg_color }}; color: {{ text_color }}; }
+        .admin-box { background: #333; padding: 20px; border-radius: 8px; border-left: 5px solid #ffc107; margin-top: 20px; }
+        .logout { color: {{ text_color }}; text-decoration: none; border: 1px solid; padding: 5px 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    <p>Bienvenido, <b>{{ username }}</b>. Tu perfil es: <code>{{ role }}</code></p>
+    <hr>
+
+    <h3>📋 Tus Tareas:</h3>
+    <ul>
+        <li>Configuración BBDD MySQL ✅</li>
+        <li>Gestión de Secretos (.env) ✅</li>
+        <li>Control de Acceso RBAC 🛡️</li>
+    </ul>
+
+    {% if role == 'admin' %}
+    <div class="admin-box">
+        <h3>🛡️ Gestión de Usuarios (Vista Admin)</h3>
+        <ul>
+            {% for user in users_list %}
+                <li>ID: {{ user.id }} - <b>{{ user.username }}</b> ({{ user.role }})</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <br><br>
+    <a href="/logout" class="logout">Cerrar Sesión Segura</a>
+</body>
+</html>

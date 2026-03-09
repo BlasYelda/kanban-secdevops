@@ -3,16 +3,17 @@ services:
     image: mysql:8.0
     container_name: kanban-db
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "kanban_user", "--password=kanban_password_123"]
+      # Usamos las variables para que el ping funcione con las credenciales del .env
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER}", "--password=${DB_PASSWORD}"]
       interval: 5s
       timeout: 5s
       retries: 10
     restart: always
     environment:
-      MYSQL_DATABASE: kanban_db
-      MYSQL_ROOT_PASSWORD: root_password_segura
-      MYSQL_USER: kanban_user
-      MYSQL_PASSWORD: kanban_password_123
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - "3307:3306"
     networks:
@@ -21,15 +22,16 @@ services:
   backend-api:
     build: ./backend
     container_name: kanban-backend
-    restart: on-failure  # Reintenta si la conexión falla al arranque
+    restart: on-failure
     ports:
       - "5000:5000"
     depends_on:
       db:
-        condition: service_healthy  # ESPERA a que la DB esté lista de verdad
+        condition: service_healthy
     environment:
-      - FLASK_ENV=development
-      - DATABASE_URL=mysql+pymysql://kanban_user:kanban_password_123@db:3306/kanban_db
+      - FLASK_ENV=${FLASK_ENV}
+      - DATABASE_URL=${DATABASE_URL}
+      - SECRET_KEY=${SECRET_KEY}
     networks:
       - kanban-network
 
@@ -42,6 +44,7 @@ services:
       - backend-api
     environment:
       - BACKEND_URL=http://backend-api:5000
+      - SECRET_KEY=${SECRET_KEY} # El front también suele necesitarla para las cookies de sesión
     networks:
       - kanban-network
 
