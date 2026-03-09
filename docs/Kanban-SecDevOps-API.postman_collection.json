@@ -1,0 +1,66 @@
+{
+  "info": {
+    "_postman_id": "775ff657-0a82-4f34-af71-7538b6e8837e",
+    "name": "Kanban-SecDevOps-API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "34527010"
+  },
+  "item": [
+    {
+      "name": "01 - Login Admin",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "02 - Listar Usuarios (Sin permiso)",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "03 - Listar Usuarios (Admin Header)",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "04 - Listar Tareas",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "05 - Crear Tarea",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "06 - Borrar Tarea (Denegado)",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "07 - Borrar Tarea (Éxito Admin)",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    }
+  ]
+}
