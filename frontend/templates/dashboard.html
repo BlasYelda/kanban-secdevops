@@ -60,33 +60,35 @@
     {% endif %}
 
     <script>
-        const API_URL = "http://localhost:5000/tasks";
-        const USER_ROLE = "{{ role }}"; // Pasamos el rol desde Jinja a JS
+        // 💡 CAMBIO CLAVE: Usamos rutas relativas para que pasen por el Proxy de Nginx
+        const API_URL = "/tasks"; 
+        const USER_ROLE = "{{ role }}"; 
 
-        // 1. Cargar tareas al iniciar
         async function loadTasks() {
-            const response = await fetch(API_URL);
-            const tasks = await response.json();
-            
-            // Limpiar columnas
-            document.querySelectorAll('.tasks-container').forEach(c => c.innerHTML = '');
-
-            tasks.forEach(task => {
-                const card = document.createElement('div');
-                card.className = 'task-card';
-                card.innerHTML = `
-                    <strong>${task.title}</strong>
-                    <p style="font-size: 0.8em; margin: 5px 0;">${task.description || ''}</p>
-                    ${USER_ROLE === 'admin' ? `<button onclick="deleteTask(${task.id})">Eliminar</button>` : ''}
-                `;
+            try {
+                const response = await fetch(API_URL);
+                const tasks = await response.json();
                 
-                const colId = `col-${task.status.toLowerCase().replace(' ', '')}`;
-                const column = document.getElementById(colId);
-                if (column) column.querySelector('.tasks-container').appendChild(card);
-            });
+                document.querySelectorAll('.tasks-container').forEach(c => c.innerHTML = '');
+
+                tasks.forEach(task => {
+                    const card = document.createElement('div');
+                    card.className = 'task-card';
+                    card.innerHTML = `
+                        <strong>${task.title}</strong>
+                        <p style="font-size: 0.8em; margin: 5px 0;">${task.description || ''}</p>
+                        ${USER_ROLE === 'admin' ? `<button onclick="deleteTask(${task.id})">Eliminar</button>` : ''}
+                    `;
+                    
+                    const colId = `col-${task.status.toLowerCase().replace(' ', '')}`;
+                    const column = document.getElementById(colId);
+                    if (column) column.querySelector('.tasks-container').appendChild(card);
+                });
+            } catch (error) {
+                console.error("Error cargando tareas:", error);
+            }
         }
 
-        // 2. Crear nueva tarea
         async function createNewTask() {
             const title = document.getElementById('taskTitle').value;
             const status = document.getElementById('taskStatus').value;
@@ -96,23 +98,22 @@
             await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, status, description: "Creado desde la web" })
+                body: JSON.stringify({ title, status, description: "Creado desde la web segura" })
             });
 
             document.getElementById('taskTitle').value = '';
             loadTasks();
         }
 
-        // 3. Borrar tarea (Solo Admin)
         async function deleteTask(id) {
+            // 💡 CAMBIO CLAVE: La URL de borrado también relativa
             await fetch(`${API_URL}/${id}`, {
                 method: 'DELETE',
-                headers: { 'X-Role': 'admin' } // Solo el admin puede borrar
+                headers: { 'X-Role': 'admin' }
             });
             loadTasks();
         }
 
-        // Ejecutar carga inicial
         loadTasks();
     </script>
 </body>

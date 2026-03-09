@@ -1,12 +1,12 @@
 # 📋 Kanban Board - SecDevOps Project
 
-Este es un proyecto de tablero Kanban desarrollado bajo una metodología SecDevOps, integrando análisis de seguridad automatizado (SAST), pruebas de integración y un despliegue resiliente basado en contenedores Docker con persistencia real en MySQL. 🚀
+Este es un proyecto de tablero Kanban desarrollado bajo una metodología SecDevOps, integrando análisis de seguridad automatizado (SAST), despliegue resiliente en contenedores y cifrado de tráfico TLS mediante un Proxy Inverso. 🚀
 
 ---
 
 ## 🚀 1. Cómo ejecutar el proyecto
 
-Este proyecto utiliza Docker Compose para orquestar los microservicios de Frontend, Backend y Base de Datos. Se han implementado Healthchecks y una red aislada para asegurar la integridad del sistema.
+Este proyecto utiliza Docker Compose para orquestar los microservicios. La arquitectura está diseñada para que el usuario solo interactúe con el Proxy Seguro, manteniendo el Backend y la BD aislados en una red privada.
 
 ### 🛠️ Prerrequisitos
 
@@ -22,20 +22,20 @@ git clone <url-de-tu-repositorio>
 cd kanban-secdevops
 ```
 
-**2. Levanta el entorno (Modo Limpio):**
+**2. Genera los certificados SSL (Autofirmados):**
 
-Este comando limpia volúmenes antiguos para regenerar las tablas de MySQL y construye las imágenes.
+> Si no tienes `openssl` instalado, usa el comando de Docker compartido en la documentación técnica.
+
+**3. Levanta el entorno (Modo Seguro):**
 
 ```bash
 docker compose down -v
 docker compose up --build -d
 ```
 
-**3. Verificación de estado:**
+**4. Acceso:**
 
-```bash
-docker compose ps
-```
+Abre tu navegador en `https://localhost`. *(Acepta el aviso de seguridad del certificado autofirmado para entrar).*
 
 ---
 
@@ -50,25 +50,20 @@ docker compose ps
 
 ### 🛡️ Seguridad Implementada
 
-- **Gestión de Secretos:** Uso de archivos `.env` (ignorados en Git) para manejar claves privadas y credenciales de DB.
-- **Hashing de Contraseñas:** Las contraseñas se almacenan en MySQL usando `werkzeug.security` (PBKDF2 con salt).
-- **RBAC (Role-Based Access Control):** Decoradores personalizados en el Backend que validan el rol del usuario antes de permitir acciones críticas (ej. borrar tareas o ver lista de usuarios).
+- **Tráfico Cifrado (HTTPS):** Uso de Nginx como Proxy Inverso con protocolos TLS v1.2/v1.3.
+- **Hashing de Contraseñas:** Almacenamiento seguro en MySQL usando `PBKDF2` con salt.
+- **RBAC (Role-Based Access Control):** Decoradores `@admin_required` que protegen endpoints sensibles (borrado de tareas, listado de usuarios).
+- **Hardening de Red:** Solo los puertos 80/443 están expuestos; el Backend y la DB son invisibles desde el exterior.
 
 ---
 
-## 🌐 3. Puntos de Acceso y API
+## 🌐 3. Puntos de Acceso (Infraestructura)
 
-| Servicio | URL | Descripción |
+| Servicio | URL Pública | Protocolo |
 |---|---|---|
-| Frontend | http://localhost:8080 | Dashboard Kanban dinámico. |
-| Backend API | http://localhost:5000 | API REST con soporte CORS. |
-
-### 🧪 Pruebas de API (Postman)
-
-Se ha incluido una colección de pruebas en la carpeta `/docs`. Para ejecutarlas:
-
-1. Importa `docs/Kanban_Tests.postman_collection.json` en Postman.
-2. Ejecuta las peticiones para validar los códigos de estado `200 OK`, `201 Created` y el bloqueo de seguridad `403 Forbidden`.
+| Frontend / App | https://localhost | HTTPS (Cifrado) |
+| API Backend | https://localhost/tasks | Proxy Pass Interno |
+| Redirección | http://localhost | Redirige a 443 |
 
 ---
 
@@ -76,26 +71,28 @@ Se ha incluido una colección de pruebas en la carpeta `/docs`. Para ejecutarlas
 
 ### 🔒 Cumplimiento OWASP Top Ten
 
-- **A01:2021 - Broken Access Control:** Implementación de decoradores `@admin_required` que verifican cabeceras de rol.
-- **A02:2021 - Cryptographic Failures:** Eliminación de secretos del código fuente; uso de hashing seguro para BD.
-- **A03:2021 - Injection:** Uso de SQLAlchemy ORM para prevenir ataques de SQL Injection mediante consultas parametrizadas.
+- **A01:2021 - Access Control:** Validación de headers `X-Role` en el servidor.
+- **A02:2021 - Cryptographic Failures:** Cifrado en tránsito (SSL) y en reposo (Hashes).
+- **A05:2021 - Security Misconfiguration:** Deshabilitación de puertos de desarrollo (5000/8080) en producción.
 
 ### 🤖 Análisis Estático (Bandit)
 
-| ID | Riesgo Detectado | Mitigación | Estado |
-|---|---|---|---|
-| B104 | Bind `0.0.0.0` | Necesario para comunicación entre contenedores Docker. | Controlado |
-| B105 | Hardcoded Passwords | Solucionado: Migrado totalmente a variables de entorno (`.env`). | Resuelto |
+| ID | Riesgo | Mitigación |
+|---|---|---|
+| B104 | Bind `0.0.0.0` | Validado para orquestación de Docker. |
+| B105 | Hardcoded PWD | Resuelto: Migrado a `.env` y carga dinámica de secretos. |
 
 ---
 
 ## 🏗️ 5. Estructura del Proyecto
 
 ```plaintext
-├── backend/            # API REST (Flask), Modelos SQLAlchemy y Lógica CRUD
-├── frontend/           # Interfaz de Usuario, Templates y JS (Fetch API)
-├── docs/               # Colección de Postman y documentación técnica
-├── docker-compose.yml  # Orquestación (Frontend, Backend, MySQL)
-├── .env.example        # Plantilla para variables de entorno
-└── .gitignore          # Exclusión de secretos y entornos virtuales
+├── backend/            # API REST (Flask) y Lógica CRUD
+├── frontend/           # Interfaz de Usuario y JS (Rutas relativas seguras)
+├── nginx/              # Configuración de Proxy y Certificados SSL
+│   ├── default.conf    # Reglas de ruteo y hardening TLS
+│   └── certs/          # Certificados .crt y .key (Ignorados en Git)
+├── docs/               # Colección de Postman para pruebas de API
+├── docker-compose.yml  # Orquestación de toda la pila SecDevOps
+└── .env.example        # Plantilla de configuración segura
 ```

@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from models import db, User, Task  # 👈 Importamos Task
+from models import db, User, Task 
 import os
 from functools import wraps
 from flask_cors import CORS
