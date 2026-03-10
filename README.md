@@ -22,9 +22,21 @@ git clone <url-de-tu-repositorio>
 cd kanban-secdevops
 ```
 
-**2. Genera los certificados SSL (Autofirmados):**
+**2. Configuración de Entorno y Seguridad:**
 
-Si no tienes `openssl` instalado localmente, ejecuta este comando universal de Docker para generar los archivos necesarios en la carpeta correcta:
+> ⚠️ **IMPORTANTE:** Por seguridad, los secretos y certificados no se incluyen en el repositorio. Debes prepararlos antes de levantar el proyecto.
+
+**Variables de entorno:** Copia la plantilla para crear el archivo de configuración local:
+
+```bash
+# En Linux / macOS / Git Bash:
+cp .env.example .env
+
+# En Windows (PowerShell):
+copy .env.example .env
+```
+
+**Generar Certificados SSL:** Ejecuta este comando universal de Docker para generar los archivos necesarios en la carpeta correcta:
 
 ```bash
 # En Bash / Zsh / Linux / Mac:
@@ -70,7 +82,7 @@ Abre tu navegador en `https://localhost`. *(Acepta el aviso de seguridad del cer
 El proyecto incluye un pipeline de integración continua que valida cada cambio automáticamente:
 
 - **SAST (Bandit):** Escaneo estático del código Python para detectar vulnerabilidades.
-- **Nginx Validation:** Prueba sintáctica automatizada del Proxy Inverso, simulando el entorno de red para asegurar que la configuración TLS es correcta.
+- **Nginx Validation:** Prueba sintáctica automatizada del Proxy Inverso, asegurando que la configuración TLS es correcta.
 - **Unit Testing:** Ejecución de pruebas unitarias sobre la lógica del Backend.
 - **Docker Stack Validation:** Verificación de que todas las imágenes construyen correctamente.
 
@@ -114,5 +126,5 @@ El proyecto incluye un pipeline de integración continua que valida cada cambio 
 │   └── certs/          # Certificados SSL (Excluidos de Git)
 ├── docs/               # Colección de Postman y Documentación
 ├── docker-compose.yml  # Orquestación de la pila completa
-└── .env                # Plantilla de configuración segura
+└── .env.example        # Plantilla de configuración segura (Copiar a .env)
 ```

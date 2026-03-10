@@ -5,3 +5,6 @@ __pycache__/
 .DS_Store
 .vscode/
 .env
+nginx/certs/*.crt
+nginx/certs/*.key
+nginx/certs/*.pem
