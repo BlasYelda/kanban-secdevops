@@ -32,9 +32,12 @@ jobs:
 
     - name: Create dummy certs for Nginx test
       run: |
-        # Creamos la carpeta y archivos falsos para que el test de Nginx no falle
         mkdir -p nginx/certs
-        touch nginx/certs/selfsigned.crt nginx/certs/selfsigned.key
+          # Generamos un certificado falso con el formato correcto que Nginx espera
+          openssl req -x509 -nodes -days 1 -newkey rsa:2048 \
+            -keyout nginx/certs/selfsigned.key \
+            -out nginx/certs/selfsigned.crt \
+            -subj "/C=ES/ST=Madrid/L=Madrid/O=Test/OU=IT/CN=localhost"
 
     - name: Validate Nginx Config
       run: |
